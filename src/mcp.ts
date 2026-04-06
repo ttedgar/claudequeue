@@ -151,8 +151,9 @@ export function setupClaudeSettings(): void {
     }
   }
 
-  // Find the claudequeue mcp binary path
-  const mcpBinPath = path.resolve(process.argv[1], "../../dist/mcp-entry.js");
+  // Resolve symlinks so npm link doesn't give us the wrong path
+  const realBin = fs.realpathSync(process.argv[1]);
+  const mcpBinPath = path.join(path.dirname(realBin), "mcp-entry.js");
 
   if (!settings.mcpServers || typeof settings.mcpServers !== "object") {
     settings.mcpServers = {};

@@ -24,6 +24,7 @@ export interface RunnerResult {
 export interface RunnerHandle {
   result: Promise<RunnerResult>;
   kill: () => void;
+  logPath: string;
 }
 
 const AUTONOMY_TEMPLATE = `You are running autonomously as part of claudequeue.
@@ -73,8 +74,9 @@ export function spawnRunner(opts: RunnerOptions): RunnerHandle {
     if (!fs.existsSync(logsDir)) {
       fs.mkdirSync(logsDir, { recursive: true });
     }
-    const logPath = path.join(logsDir, "run.log");
-    const logStream = fs.createWriteStream(logPath, { flags: "a" });
+    // Per-task log: {repoId}/{taskId}.log
+    const logPath = path.join(logsDir, `${opts.repoId}-${opts.taskTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").substring(0, 40)}.log`);
+    const logStream = fs.createWriteStream(logPath, { flags: "w" }); // overwrite each run
 
     const timestamp = new Date().toISOString();
     logStream.write(`\n\n--- Run started ${timestamp} ---\n`);
@@ -111,9 +113,15 @@ export function spawnRunner(opts: RunnerOptions): RunnerHandle {
     });
   });
 
+  const logPath = path.join(
+    getLogsDir(opts.repoId),
+    `${opts.repoId}-${opts.taskTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").substring(0, 40)}.log`
+  );
+
   const handle: RunnerHandle = {
     result,
-    kill: () => { killed = true; }, // overwritten above once pty is spawned
+    kill: () => { killed = true; },
+    logPath,
   };
 
   return handle;

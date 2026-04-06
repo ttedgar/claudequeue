@@ -6,16 +6,9 @@
 <title>claudequeue</title>
 <style>
   :root {
-    --bg: #0d1117;
-    --bg2: #161b22;
-    --bg3: #21262d;
-    --border: #30363d;
-    --text: #e6edf3;
-    --text2: #8b949e;
-    --accent: #58a6ff;
-    --green: #3fb950;
-    --yellow: #d29922;
-    --red: #f85149;
+    --bg: #0d1117; --bg2: #161b22; --bg3: #21262d; --border: #30363d;
+    --text: #e6edf3; --text2: #8b949e;
+    --accent: #58a6ff; --green: #3fb950; --yellow: #d29922; --red: #f85149;
     --radius: 6px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -28,113 +21,156 @@
 
   .main { display: flex; flex: 1; overflow: hidden; }
 
-  /* Sidebar */
-  .sidebar { width: 210px; border-right: 1px solid var(--border); background: var(--bg2); display: flex; flex-direction: column; flex-shrink: 0; }
-  .sidebar-section { padding: 10px 12px 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text2); }
+  .sidebar { width: 210px; border-right: 1px solid var(--border); background: var(--bg2); display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; }
+  .sidebar-label { padding: 10px 12px 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text2); flex-shrink: 0; }
   .repo-list { flex: 1; overflow-y: auto; }
   .repo-item { padding: 8px 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; border-left: 2px solid transparent; }
   .repo-item:hover { background: var(--bg3); }
   .repo-item.active { border-left-color: var(--accent); background: var(--bg3); }
   .repo-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text2); flex-shrink: 0; }
-  .repo-dot.running { background: var(--green); }
-  .repo-info { overflow: hidden; flex: 1; }
+  .repo-dot.on { background: var(--green); }
+  .repo-info { flex: 1; overflow: hidden; }
   .repo-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .repo-counts { font-size: 11px; color: var(--text2); margin-top: 1px; }
-  .repo-remove { opacity: 0; font-size: 11px; color: var(--text2); background: none; border: none; cursor: pointer; padding: 2px 4px; border-radius: 3px; }
-  .repo-item:hover .repo-remove { opacity: 1; }
-  .repo-remove:hover { color: var(--red); }
-
-  .add-repo { padding: 8px 12px; border-top: 1px solid var(--border); }
+  .repo-rm { opacity: 0; background: none; border: none; color: var(--text2); cursor: pointer; font-size: 12px; padding: 2px 4px; }
+  .repo-item:hover .repo-rm { opacity: 1; }
+  .repo-rm:hover { color: var(--red); }
+  .add-repo { padding: 8px 12px; border-top: 1px solid var(--border); flex-shrink: 0; }
   .add-repo input { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 5px 8px; color: var(--text); font-size: 12px; outline: none; }
   .add-repo input:focus { border-color: var(--accent); }
   .add-repo button { margin-top: 5px; width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 5px; color: var(--text2); font-size: 12px; cursor: pointer; }
   .add-repo button:hover { border-color: var(--accent); color: var(--accent); }
 
-  /* Content */
   .content { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
 
-  /* Toolbar */
-  .toolbar { padding: 10px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; flex-shrink: 0; background: var(--bg2); }
-  .toolbar-left { flex: 1; display: flex; align-items: center; gap: 8px; }
-  .filter-btn { background: none; border: 1px solid transparent; border-radius: var(--radius); padding: 4px 10px; font-size: 12px; color: var(--text2); cursor: pointer; }
-  .filter-btn:hover { border-color: var(--border); color: var(--text); }
-  .filter-btn.active { background: var(--bg3); border-color: var(--border); color: var(--text); }
-  .btn { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 5px 12px; color: var(--text); font-size: 12px; cursor: pointer; }
+  /* Tabs */
+  .tabs { display: flex; background: var(--bg2); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .tab { padding: 8px 18px; font-size: 13px; color: var(--text2); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--text); border-bottom-color: var(--accent); }
+  .tab-panel { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+  .tab-panel.active { display: flex; }
+
+  /* Usage charts */
+  .usage-scroll { flex: 1; overflow-y: auto; padding: 20px; }
+  .usage-section { margin-bottom: 32px; }
+  .usage-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .usage-subtitle { font-size: 11px; color: var(--text2); margin-bottom: 14px; }
+  .chart { display: flex; align-items: flex-end; gap: 6px; height: 120px; }
+  .bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; min-width: 0; }
+  .bar { width: 100%; background: var(--accent); border-radius: 3px 3px 0 0; min-height: 2px; opacity: 0.85; position: relative; cursor: default; }
+  .bar:hover { opacity: 1; }
+  .bar-tip { display: none; position: absolute; top: -32px; left: 50%; transform: translateX(-50%); background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 3px 8px; font-size: 11px; white-space: nowrap; z-index: 5; pointer-events: none; }
+  .bar:hover .bar-tip { display: block; }
+  .bar-label { font-size: 10px; color: var(--text2); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+  .usage-stats { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; align-items: flex-start; }
+  .stat-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; min-width: 110px; }
+  .stat-val { font-size: 20px; font-weight: 700; color: var(--accent); }
+  .stat-lbl { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .usage-refresh { font-size: 11px; color: var(--text2); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .usage-refresh button { background: none; border: 1px solid var(--border); border-radius: 3px; color: var(--text2); font-size: 11px; padding: 2px 8px; cursor: pointer; }
+  .usage-refresh button:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Usage ring */
+  .window-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 20px; display: flex; align-items: center; gap: 24px; margin-bottom: 28px; }
+  .ring-wrap { position: relative; width: 100px; height: 100px; flex-shrink: 0; }
+  .ring-wrap svg { transform: rotate(-90deg); }
+  .ring-bg { fill: none; stroke: var(--bg3); stroke-width: 8; }
+  .ring-fg { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
+  .ring-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .ring-pct { font-size: 22px; font-weight: 700; line-height: 1; }
+  .ring-sub { font-size: 10px; color: var(--text2); margin-top: 2px; }
+  .window-info { flex: 1; }
+  .window-info h3 { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .window-detail { font-size: 12px; color: var(--text2); line-height: 1.7; }
+  .window-detail strong { color: var(--text); }
+  .limit-note { font-size: 11px; color: var(--text2); margin-top: 8px; }
+
+  .toolbar { padding: 8px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; flex-shrink: 0; background: var(--bg2); flex-wrap: wrap; }
+  .toolbar-left { display: flex; gap: 4px; flex: 1; flex-wrap: wrap; }
+  .filter-btn { background: none; border: 1px solid transparent; border-radius: var(--radius); padding: 3px 9px; font-size: 12px; color: var(--text2); cursor: pointer; }
+  .filter-btn:hover, .filter-btn.active { background: var(--bg3); border-color: var(--border); color: var(--text); }
+  .btn { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 5px 11px; color: var(--text); font-size: 12px; cursor: pointer; white-space: nowrap; }
   .btn:hover { border-color: var(--accent); }
   .btn-primary { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 600; }
   .btn-primary:hover { opacity: 0.85; }
   .btn-stop { border-color: var(--red); color: var(--red); }
   .btn-stop:hover { background: var(--red); color: #fff; }
 
-  /* Task list */
-  .task-scroll { flex: 1; overflow-y: auto; padding: 12px 16px; }
+  /* Rate limit banner */
+  .rl-banner { background: rgba(210,153,34,0.1); border-bottom: 1px solid rgba(210,153,34,0.3); padding: 8px 14px; display: none; align-items: center; gap: 10px; flex-shrink: 0; }
+  .rl-banner.show { display: flex; }
+  .rl-banner-text { font-size: 12px; color: var(--yellow); flex: 1; }
+  .rl-countdown { font-size: 12px; font-weight: 600; color: var(--yellow); font-variant-numeric: tabular-nums; }
 
-  .repo-group { margin-bottom: 20px; }
-  .repo-group-header { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text2); padding: 0 0 6px 2px; border-bottom: 1px solid var(--border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
-  .repo-group-header span { font-weight: 400; font-size: 11px; color: var(--text2); text-transform: none; letter-spacing: 0; }
+  .task-scroll { flex: 1; overflow-y: auto; padding: 12px 14px; }
+  .task-scroll.drag-active { outline: 2px dashed var(--accent); outline-offset: -4px; }
 
-  .task-item { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; margin-bottom: 6px; cursor: grab; }
+  .repo-group { margin-bottom: 18px; }
+  .group-header { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text2); padding-bottom: 6px; border-bottom: 1px solid var(--border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .group-header span { font-weight: 400; text-transform: none; letter-spacing: 0; }
+
+  .task-item { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 9px 11px; margin-bottom: 5px; cursor: grab; transition: border-color 0.1s; }
   .task-item:active { cursor: grabbing; }
-  .task-item.dragging { opacity: 0.35; }
+  .task-item.dragging { opacity: 0.3; }
   .task-item.drag-over { border-color: var(--accent); }
   .task-item.status-ACTIVE { border-left: 3px solid var(--accent); }
-  .task-item.status-DONE { opacity: 0.55; }
+  .task-item.status-DONE { opacity: 0.5; }
   .task-item.status-BLOCKED { border-left: 3px solid var(--red); }
 
   .task-row { display: flex; align-items: flex-start; gap: 8px; }
-  .status-badge { font-size: 9px; font-weight: 700; padding: 2px 5px; border-radius: 3px; white-space: nowrap; flex-shrink: 0; margin-top: 2px; text-transform: uppercase; }
+  .badge { font-size: 9px; font-weight: 700; padding: 2px 5px; border-radius: 3px; white-space: nowrap; flex-shrink: 0; margin-top: 2px; text-transform: uppercase; }
   .badge-PENDING { background: rgba(139,148,158,0.12); color: var(--text2); }
   .badge-ACTIVE { background: rgba(88,166,255,0.15); color: var(--accent); }
   .badge-DONE { background: rgba(63,185,80,0.12); color: var(--green); }
   .badge-BLOCKED { background: rgba(248,81,73,0.12); color: var(--red); }
 
-  .task-main { flex: 1; min-width: 0; }
+  .task-body { flex: 1; min-width: 0; }
   .task-title { font-size: 13px; font-weight: 500; }
-  .task-desc { font-size: 12px; color: var(--text2); margin-top: 3px; white-space: pre-wrap; }
-  .task-ac { font-size: 11px; color: var(--text2); margin-top: 3px; font-style: italic; }
+  .task-desc { font-size: 12px; color: var(--text2); margin-top: 3px; }
+  .task-ac { font-size: 11px; color: var(--text2); margin-top: 2px; font-style: italic; }
 
-  .task-actions { display: flex; gap: 4px; margin-left: auto; flex-shrink: 0; opacity: 0; }
-  .task-item:hover .task-actions { opacity: 1; }
-  .task-actions button { background: none; border: 1px solid var(--border); border-radius: 3px; color: var(--text2); font-size: 11px; padding: 2px 7px; cursor: pointer; }
-  .task-actions button:hover { border-color: var(--accent); color: var(--accent); }
-  .task-actions .del { border-color: transparent; }
-  .task-actions .del:hover { border-color: var(--red); color: var(--red); }
+  .task-btns { display: flex; gap: 3px; flex-shrink: 0; opacity: 0; }
+  .task-item:hover .task-btns { opacity: 1; }
+  .task-btns button { background: none; border: 1px solid var(--border); border-radius: 3px; color: var(--text2); font-size: 11px; padding: 2px 6px; cursor: pointer; white-space: nowrap; }
+  .task-btns button:hover { border-color: var(--accent); color: var(--accent); }
+  .task-btns .del:hover { border-color: var(--red); color: var(--red); }
 
-  /* Status / progress bar */
-  .statusbar { background: var(--bg2); border-top: 1px solid var(--border); padding: 8px 16px; display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+  .statusbar { background: var(--bg2); border-top: 1px solid var(--border); padding: 7px 14px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
   .status-text { font-size: 12px; color: var(--text2); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .progress-wrap { display: flex; align-items: center; gap: 8px; }
-  .progress-bar { width: 140px; height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; }
+  .progress-bar { width: 120px; height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; }
   .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; }
-  .progress-label { font-size: 11px; color: var(--text2); white-space: nowrap; }
-  .ratelimit-pill { background: rgba(210,153,34,0.12); color: var(--yellow); border: 1px solid rgba(210,153,34,0.3); border-radius: 10px; padding: 2px 8px; font-size: 11px; display: none; }
+  .prog-label { font-size: 11px; color: var(--text2); white-space: nowrap; }
 
-  /* Log */
-  .log-panel { height: 170px; border-top: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
-  .log-header { padding: 5px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text2); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-  .log-body { flex: 1; overflow-y: auto; padding: 6px 12px; font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; font-size: 11px; line-height: 1.55; white-space: pre-wrap; word-break: break-all; }
-  .l { color: var(--text2); }
-  .l.ev { color: var(--accent); }
-  .l.ok { color: var(--green); }
-  .l.bl { color: var(--red); }
-  .l.rl { color: var(--yellow); }
+  .log-panel { height: 160px; border-top: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+  .log-hdr { padding: 4px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text2); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+  .log-body { flex: 1; overflow-y: auto; padding: 5px 12px; font-family: 'Cascadia Code','Fira Code','Consolas',monospace; font-size: 11px; line-height: 1.5; white-space: pre-wrap; word-break: break-all; }
+  .l { color: var(--text2); } .l.ev { color: var(--accent); } .l.ok { color: var(--green); } .l.bl { color: var(--red); } .l.rl { color: var(--yellow); }
 
-  /* Modal */
+  /* Modals */
   .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 50; align-items: center; justify-content: center; }
   .overlay.open { display: flex; }
-  .modal { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 20px; width: 500px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
+  .modal { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 20px; width: 520px; max-width: 95vw; max-height: 88vh; overflow-y: auto; }
   .modal h3 { font-size: 14px; margin-bottom: 14px; }
-  .field { margin-bottom: 12px; }
+  .field { margin-bottom: 11px; }
   .field label { display: block; font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-  .field input, .field textarea, .field select {
-    width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 7px 9px; color: var(--text); font-size: 13px; outline: none; font-family: inherit;
-  }
+  .field input, .field textarea, .field select { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 7px 9px; color: var(--text); font-size: 13px; outline: none; font-family: inherit; }
   .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--accent); }
   .field textarea { resize: vertical; min-height: 70px; }
-  .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
 
-  .empty { text-align: center; padding: 60px; color: var(--text2); font-size: 14px; }
+  /* Log viewer modal */
+  .log-modal { width: 800px; }
+  .log-viewer { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; height: 420px; overflow-y: auto; font-family: 'Cascadia Code','Fira Code','Consolas',monospace; font-size: 11px; line-height: 1.55; white-space: pre-wrap; word-break: break-all; color: var(--text2); }
+  .log-live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); display: inline-block; margin-right: 6px; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  /* Drop zone overlay */
+  .drop-hint { display: none; position: absolute; inset: 0; background: rgba(88,166,255,0.08); border: 2px dashed var(--accent); border-radius: var(--radius); align-items: center; justify-content: center; font-size: 14px; color: var(--accent); pointer-events: none; z-index: 10; }
+  .drop-hint.show { display: flex; }
+  .task-scroll { position: relative; }
+
+  .empty { text-align: center; padding: 50px 20px; color: var(--text2); font-size: 14px; }
   .empty p { margin-top: 6px; font-size: 12px; }
 </style>
 </head>
@@ -146,9 +182,8 @@
 </header>
 
 <div class="main">
-  <!-- Sidebar -->
   <div class="sidebar">
-    <div class="sidebar-section">Repos</div>
+    <div class="sidebar-label">Repos</div>
     <div class="repo-list" id="repo-list"></div>
     <div class="add-repo">
       <input id="repo-input" type="text" placeholder="/path/to/project" />
@@ -156,68 +191,115 @@
     </div>
   </div>
 
-  <!-- Main content -->
   <div class="content">
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('queue', this)">Queue</div>
+      <div class="tab" onclick="switchTab('usage', this)">Usage</div>
+    </div>
+
+    <!-- Queue tab -->
+    <div class="tab-panel active" id="tab-queue">
     <div class="toolbar">
       <div class="toolbar-left">
-        <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
-        <button class="filter-btn" onclick="setFilter('PENDING', this)">Pending</button>
-        <button class="filter-btn" onclick="setFilter('ACTIVE', this)">Active</button>
-        <button class="filter-btn" onclick="setFilter('DONE', this)">Done</button>
-        <button class="filter-btn" onclick="setFilter('BLOCKED', this)">Blocked</button>
+        <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+        <button class="filter-btn" onclick="setFilter('PENDING',this)">Pending</button>
+        <button class="filter-btn" onclick="setFilter('ACTIVE',this)">Active</button>
+        <button class="filter-btn" onclick="setFilter('DONE',this)">Done</button>
+        <button class="filter-btn" onclick="setFilter('BLOCKED',this)">Blocked</button>
       </div>
+      <label class="btn" style="cursor:pointer" title="Import .md file as task">
+        Import .md
+        <input type="file" accept=".md" style="display:none" onchange="importMdFile(this)">
+      </label>
       <button class="btn" onclick="openAddModal()">+ Add Task</button>
-      <span class="ratelimit-pill" id="rl-pill">⏳ Rate limited</span>
       <button class="btn btn-primary" id="start-btn" onclick="startScheduler()">▶ Start</button>
       <button class="btn btn-stop" id="stop-btn" style="display:none" onclick="stopScheduler()">■ Stop</button>
     </div>
 
-    <div class="task-scroll" id="task-scroll">
-      <div class="empty" id="empty-msg">
-        <strong>No repos yet</strong>
-        <p>Add a repo in the sidebar to get started</p>
-      </div>
+    <!-- Rate limit banner -->
+    <div class="rl-banner" id="rl-banner">
+      <div class="rl-banner-text">⏳ Rate limit reached — queue paused</div>
+      <div class="rl-countdown" id="rl-countdown"></div>
+    </div>
+
+    <div class="task-scroll" id="task-scroll"
+      ondragover="onScrollDragOver(event)"
+      ondragleave="onScrollDragLeave(event)"
+      ondrop="onScrollDrop(event)">
+      <div class="drop-hint" id="drop-hint">Drop .md file to import as task</div>
+      <div class="empty" id="empty-msg"><strong>No repos yet</strong><p>Add a repo in the sidebar to get started</p></div>
       <div id="task-groups"></div>
     </div>
 
     <div class="statusbar">
       <div class="status-text" id="status-text">Idle</div>
-      <div class="progress-wrap">
-        <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
-        <div class="progress-label" id="prog-label"></div>
-      </div>
+      <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+      <div class="prog-label" id="prog-label"></div>
     </div>
 
     <div class="log-panel">
-      <div class="log-header">
+      <div class="log-hdr">
         Live Log
-        <button class="btn" style="padding:1px 8px;font-size:11px" onclick="document.getElementById('log-body').innerHTML=''">Clear</button>
+        <button class="btn" style="padding:1px 7px;font-size:11px" onclick="logBody.innerHTML=''">Clear</button>
       </div>
       <div class="log-body" id="log-body"></div>
     </div>
-  </div>
+    </div><!-- end tab-queue -->
+
+    <!-- Usage tab -->
+    <div class="tab-panel" id="tab-usage">
+      <div class="usage-scroll">
+        <div class="usage-refresh">
+          <span>Source: ~/.claude/projects/</span>
+          <button onclick="loadUsage()">↺ Refresh</button>
+        </div>
+
+        <!-- 5-hour ring -->
+        <div class="window-card">
+          <div class="ring-wrap">
+            <svg width="100" height="100" viewBox="0 0 100 100">
+              <circle class="ring-bg" cx="50" cy="50" r="42"/>
+              <circle class="ring-fg" id="ring-fg" cx="50" cy="50" r="42" stroke-dasharray="264" stroke-dashoffset="264"/>
+            </svg>
+            <div class="ring-label">
+              <div class="ring-pct" id="ring-pct">—</div>
+              <div class="ring-sub">used</div>
+            </div>
+          </div>
+          <div class="window-info">
+            <h3>5-Hour Window</h3>
+            <div class="window-detail" id="window-detail">Loading...</div>
+            <div class="limit-note" id="limit-note"></div>
+          </div>
+        </div>
+
+        <div class="usage-section">
+          <div class="usage-title">5-Hour Breakdown</div>
+          <div class="usage-subtitle">Tokens per hour — last 5 hours</div>
+          <div class="chart" id="chart-hourly"></div>
+          <div class="usage-stats" id="stats-hourly"></div>
+        </div>
+
+        <div class="usage-section">
+          <div class="usage-title">Weekly Activity</div>
+          <div class="usage-subtitle">Tokens per day — last 7 days</div>
+          <div class="chart" id="chart-daily"></div>
+          <div class="usage-stats" id="stats-daily"></div>
+        </div>
+      </div>
+    </div><!-- end tab-usage -->
+
+  </div><!-- end content -->
 </div>
 
 <!-- Add task modal -->
 <div class="overlay" id="add-modal">
   <div class="modal">
     <h3>Add Task</h3>
-    <div class="field">
-      <label>Repo</label>
-      <select id="add-repo-select"></select>
-    </div>
-    <div class="field">
-      <label>Title *</label>
-      <input id="add-title" type="text" placeholder="Task title" />
-    </div>
-    <div class="field">
-      <label>Description</label>
-      <textarea id="add-desc" placeholder="What needs to be done..."></textarea>
-    </div>
-    <div class="field">
-      <label>Acceptance Criteria</label>
-      <input id="add-ac" type="text" placeholder="Measurable outcome..." />
-    </div>
+    <div class="field"><label>Repo</label><select id="add-repo-sel"></select></div>
+    <div class="field"><label>Title *</label><input id="add-title" type="text" placeholder="Task title" /></div>
+    <div class="field"><label>Description</label><textarea id="add-desc" placeholder="What needs to be done..."></textarea></div>
+    <div class="field"><label>Acceptance Criteria</label><input id="add-ac" type="text" placeholder="Measurable outcome..." /></div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('add-modal')">Cancel</button>
       <button class="btn btn-primary" onclick="submitAdd()">Add Task</button>
@@ -229,20 +311,10 @@
 <div class="overlay" id="edit-modal">
   <div class="modal">
     <h3>Edit Task</h3>
-    <div class="field">
-      <label>Title</label>
-      <input id="edit-title" type="text" />
-    </div>
-    <div class="field">
-      <label>Description</label>
-      <textarea id="edit-desc"></textarea>
-    </div>
-    <div class="field">
-      <label>Acceptance Criteria</label>
-      <input id="edit-ac" type="text" />
-    </div>
-    <div class="field">
-      <label>Status</label>
+    <div class="field"><label>Title</label><input id="edit-title" type="text" /></div>
+    <div class="field"><label>Description</label><textarea id="edit-desc"></textarea></div>
+    <div class="field"><label>Acceptance Criteria</label><input id="edit-ac" type="text" /></div>
+    <div class="field"><label>Status</label>
       <select id="edit-status">
         <option value="PENDING">PENDING</option>
         <option value="ACTIVE">ACTIVE</option>
@@ -257,27 +329,43 @@
   </div>
 </div>
 
+<!-- Task log modal -->
+<div class="overlay" id="log-modal">
+  <div class="modal log-modal">
+    <h3 id="log-modal-title">Task Log</h3>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:8px">
+      <span id="log-live-indicator" style="display:none"><span class="log-live-dot"></span>Live</span>
+      <span id="log-static-label">Historical log</span>
+    </div>
+    <div class="log-viewer" id="log-viewer"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('log-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const state = {
-  repos: [],
-  tasks: [],       // flat list with repoId/repoName attached
-  filter: 'all',
+  repos: [], tasks: [], filter: 'all',
   editing: null,   // { repoId, taskId }
+  viewingLog: null, // { repoId, taskId }
+  rlResetTime: null,
+  rlTimer: null,
 };
 
-// ── WebSocket ──────────────────────────────────────────────
+// ── WebSocket ─────────────────────────────────────────────
 function connectWS() {
   const ws = new WebSocket(`ws://${location.host}`);
   ws.onopen = () => setConn('connected');
   ws.onclose = () => { setConn('disconnected'); setTimeout(connectWS, 3000); };
-  ws.onerror = () => setConn('error');
+  ws.onerror  = () => setConn('error');
   ws.onmessage = e => {
     const { event, data } = JSON.parse(e.data);
-    onWsEvent(event, data);
+    onWs(event, data);
   };
 }
 
-function onWsEvent(event, data) {
+function onWs(event, data) {
   switch (event) {
     case 'task-started':
       log(`→ [${data.repoName}] ${data.title}`, 'ev');
@@ -289,24 +377,28 @@ function onWsEvent(event, data) {
       refresh();
       break;
     case 'task-blocked':
-      log(`✗ [${data.repoName}] ${data.title}${data.reason ? ' — '+data.reason : ''}`, 'bl');
+      log(`✗ [${data.repoName}] ${data.title}${data.reason?' — '+data.reason:''}`, 'bl');
       refresh();
       break;
     case 'output':
       log(data.text);
+      // Also pipe into log modal if it's open for this task
+      if (state.viewingLog && state.viewingLog.taskId === data.taskId) {
+        appendLogViewer(data.text);
+      }
       break;
     case 'ratelimit-detected':
-      log('⚠ Rate limit — waiting for reset', 'rl');
-      document.getElementById('rl-pill').style.display = 'inline';
+      showRateLimit(data.resetTime);
+      log(`⚠ Rate limit reached${data.resetTime ? ' — resets ' + fmtTime(new Date(data.resetTime)) : ''}`, 'rl');
       break;
     case 'ratelimit-polling':
-      log(`⏳ Poll #${data.attempt} — next in ${Math.round(data.nextAttemptIn/60000)}min`, 'rl');
+      if (data.msRemaining > 0) updateRlCountdown(data.msRemaining);
       break;
     case 'queue-empty':
       log('✓ All tasks complete', 'ok');
-      setRunning(false);
       setStatus('Idle — queue complete');
-      document.getElementById('rl-pill').style.display = 'none';
+      setRunning(false);
+      hideRateLimit();
       refresh();
       break;
     case 'error':
@@ -318,10 +410,49 @@ function onWsEvent(event, data) {
 function setConn(s) {
   const el = document.getElementById('conn-status');
   el.textContent = s;
-  el.style.color = s==='connected' ? 'var(--green)' : s==='disconnected' ? 'var(--red)' : 'var(--yellow)';
+  el.style.color = s==='connected'?'var(--green)':s==='disconnected'?'var(--red)':'var(--yellow)';
 }
 
-// ── API ────────────────────────────────────────────────────
+// ── Rate limit banner ─────────────────────────────────────
+function showRateLimit(resetTimeIso) {
+  const banner = document.getElementById('rl-banner');
+  banner.classList.add('show');
+  if (resetTimeIso) {
+    state.rlResetTime = new Date(resetTimeIso);
+    tickRlCountdown();
+  }
+  setRunning(false);
+}
+
+function hideRateLimit() {
+  document.getElementById('rl-banner').classList.remove('show');
+  if (state.rlTimer) { clearInterval(state.rlTimer); state.rlTimer = null; }
+}
+
+function tickRlCountdown() {
+  if (state.rlTimer) clearInterval(state.rlTimer);
+  state.rlTimer = setInterval(() => {
+    const ms = state.rlResetTime - Date.now();
+    if (ms <= 0) { hideRateLimit(); return; }
+    updateRlCountdown(ms);
+  }, 1000);
+  updateRlCountdown(state.rlResetTime - Date.now());
+}
+
+function updateRlCountdown(ms) {
+  if (ms < 0) return;
+  const h = Math.floor(ms/3600000);
+  const m = Math.floor((ms%3600000)/60000);
+  const s = Math.floor((ms%60000)/1000);
+  document.getElementById('rl-countdown').textContent =
+    h > 0 ? `${h}h ${m}m` : m > 0 ? `${m}m ${s}s` : `${s}s`;
+}
+
+function fmtTime(d) {
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+// ── API ───────────────────────────────────────────────────
 async function api(method, url, body) {
   const res = await fetch(url, {
     method,
@@ -331,7 +462,6 @@ async function api(method, url, body) {
   return res.json();
 }
 
-// ── Init ───────────────────────────────────────────────────
 async function init() {
   await refresh();
   const { running } = await api('GET', '/api/scheduler/status');
@@ -340,36 +470,32 @@ async function init() {
 }
 
 async function refresh() {
-  const [reposRes, tasksRes] = await Promise.all([
-    api('GET', '/api/repos'),
-    api('GET', '/api/tasks'),
-  ]);
-  state.repos = reposRes.repos || [];
-  state.tasks = tasksRes.tasks || [];
+  const [r1, r2] = await Promise.all([api('GET','/api/repos'), api('GET','/api/tasks')]);
+  state.repos = r1.repos || [];
+  state.tasks = r2.tasks || [];
   renderSidebar();
   renderTasks();
   updateProgress();
 }
 
-// ── Sidebar ────────────────────────────────────────────────
+// ── Sidebar ───────────────────────────────────────────────
 function renderSidebar() {
   const list = document.getElementById('repo-list');
   list.innerHTML = '';
   for (const repo of state.repos) {
-    const repoTasks = state.tasks.filter(t => t.repoId === repo.id);
-    const pending = repoTasks.filter(t => t.status === 'PENDING').length;
-    const active = repoTasks.filter(t => t.status === 'ACTIVE').length;
-    const counts = [active && `${active} active`, pending && `${pending} pending`].filter(Boolean).join(', ') || 'no tasks';
-
+    const rt = state.tasks.filter(t => t.repoId === repo.id);
+    const active = rt.filter(t => t.status==='ACTIVE').length;
+    const pending = rt.filter(t => t.status==='PENDING').length;
+    const counts = [active&&`${active} active`, pending&&`${pending} pending`].filter(Boolean).join(', ') || 'no tasks';
     const div = document.createElement('div');
     div.className = 'repo-item';
     div.innerHTML = `
-      <div class="repo-dot${active ? ' running' : ''}"></div>
+      <div class="repo-dot${active?' on':''}"></div>
       <div class="repo-info">
         <div class="repo-name">${esc(repo.name)}</div>
         <div class="repo-counts">${esc(counts)}</div>
       </div>
-      <button class="repo-remove" title="Remove repo" onclick="removeRepo(event,'${repo.id}')">✕</button>`;
+      <button class="repo-rm" onclick="removeRepo(event,'${repo.id}')">✕</button>`;
     list.appendChild(div);
   }
 }
@@ -378,7 +504,7 @@ async function addRepo() {
   const input = document.getElementById('repo-input');
   const repoPath = input.value.trim();
   if (!repoPath) return;
-  const { repo, error } = await api('POST', '/api/repos', { repoPath });
+  const { repo, error } = await api('POST','/api/repos',{ repoPath });
   if (error) { alert(error); return; }
   input.value = '';
   await refresh();
@@ -386,12 +512,12 @@ async function addRepo() {
 
 async function removeRepo(e, id) {
   e.stopPropagation();
-  if (!confirm('Remove this repo from claudequeue? (queue.md will not be deleted)')) return;
+  if (!confirm('Remove this repo? (queue.md will not be deleted)')) return;
   await api('DELETE', `/api/repos/${id}`);
   await refresh();
 }
 
-// ── Task rendering ─────────────────────────────────────────
+// ── Task rendering ────────────────────────────────────────
 function setFilter(f, btn) {
   state.filter = f;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -401,37 +527,25 @@ function setFilter(f, btn) {
 
 function renderTasks() {
   const groups = document.getElementById('task-groups');
-  const empty = document.getElementById('empty-msg');
-
-  if (state.repos.length === 0) {
-    groups.innerHTML = '';
-    empty.style.display = '';
-    return;
-  }
+  const empty  = document.getElementById('empty-msg');
+  if (state.repos.length === 0) { groups.innerHTML=''; empty.style.display=''; return; }
   empty.style.display = 'none';
-
   groups.innerHTML = '';
-
   for (const repo of state.repos) {
     let tasks = state.tasks.filter(t => t.repoId === repo.id);
     if (state.filter !== 'all') tasks = tasks.filter(t => t.status === state.filter);
-    if (tasks.length === 0) continue;
-
-    const group = document.createElement('div');
-    group.className = 'repo-group';
-    group.dataset.repoId = repo.id;
-
+    if (!tasks.length) continue;
     const total = state.tasks.filter(t => t.repoId === repo.id).length;
-    const done = state.tasks.filter(t => t.repoId === repo.id && t.status === 'DONE').length;
-    group.innerHTML = `<div class="repo-group-header">${esc(repo.name)} <span>${done}/${total} done</span></div>`;
-
-    const taskList = document.createElement('div');
-    taskList.className = 'task-list-inner';
-    for (const task of tasks) {
-      taskList.appendChild(makeTaskEl(repo.id, task));
-    }
-    group.appendChild(taskList);
-    groups.appendChild(group);
+    const done  = state.tasks.filter(t => t.repoId === repo.id && t.status==='DONE').length;
+    const grp = document.createElement('div');
+    grp.className = 'repo-group';
+    grp.dataset.repoId = repo.id;
+    grp.innerHTML = `<div class="group-header">${esc(repo.name)} <span>${done}/${total} done</span></div>`;
+    const inner = document.createElement('div');
+    inner.className = 'task-list-inner';
+    tasks.forEach(t => inner.appendChild(makeTaskEl(repo.id, t)));
+    grp.appendChild(inner);
+    groups.appendChild(grp);
   }
 }
 
@@ -443,78 +557,151 @@ function makeTaskEl(repoId, task) {
   div.dataset.repoId = repoId;
   div.innerHTML = `
     <div class="task-row">
-      <span class="status-badge badge-${task.status}">${task.status}</span>
-      <div class="task-main">
+      <span class="badge badge-${task.status}">${task.status}</span>
+      <div class="task-body">
         <div class="task-title">${esc(task.title)}</div>
-        ${task.description ? `<div class="task-desc">${esc(task.description).substring(0,200)}</div>` : ''}
-        ${task.acceptanceCriteria ? `<div class="task-ac">✓ ${esc(task.acceptanceCriteria).substring(0,120)}</div>` : ''}
+        ${task.description?`<div class="task-desc">${esc(task.description).substring(0,180)}</div>`:''}
+        ${task.acceptanceCriteria?`<div class="task-ac">✓ ${esc(task.acceptanceCriteria).substring(0,120)}</div>`:''}
       </div>
-      <div class="task-actions">
+      <div class="task-btns">
+        <button onclick="openLog('${repoId}','${task.id}','${esc(task.title)}')">Log</button>
         <button onclick="openEdit('${repoId}','${task.id}')">Edit</button>
-        <button class="del" onclick="deleteTask(event,'${repoId}','${task.id}')">✕</button>
+        <button class="del" onclick="delTask(event,'${repoId}','${task.id}')">✕</button>
       </div>
     </div>`;
   setupDrag(div, repoId);
   return div;
 }
 
-// ── Progress ───────────────────────────────────────────────
 function updateProgress() {
-  const done = state.tasks.filter(t => t.status === 'DONE').length;
+  const done  = state.tasks.filter(t => t.status==='DONE').length;
   const total = state.tasks.length;
-  const pct = total ? Math.round(done/total*100) : 0;
-  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-fill').style.width = total ? Math.round(done/total*100)+'%' : '0%';
   document.getElementById('prog-label').textContent = total ? `${done}/${total}` : '';
 }
 
-// ── Add task modal ─────────────────────────────────────────
-function openAddModal() {
-  const sel = document.getElementById('add-repo-select');
-  sel.innerHTML = state.repos.map(r => `<option value="${r.id}">${esc(r.name)}</option>`).join('');
+// ── Task log modal ────────────────────────────────────────
+async function openLog(repoId, taskId, title) {
+  state.viewingLog = { repoId, taskId };
+  document.getElementById('log-modal-title').textContent = title;
+
+  const isActive = state.tasks.find(t => t.repoId===repoId && t.id===taskId)?.status === 'ACTIVE';
+  document.getElementById('log-live-indicator').style.display = isActive ? 'inline' : 'none';
+  document.getElementById('log-static-label').style.display  = isActive ? 'none' : 'inline';
+
+  const viewer = document.getElementById('log-viewer');
+  viewer.textContent = 'Loading...';
+  document.getElementById('log-modal').classList.add('open');
+
+  const { log } = await api('GET', `/api/repos/${repoId}/tasks/${taskId}/log`);
+  viewer.textContent = log || '(no log yet — task has not run)';
+  viewer.scrollTop = viewer.scrollHeight;
+}
+
+function appendLogViewer(text) {
+  const viewer = document.getElementById('log-viewer');
+  viewer.textContent += text;
+  viewer.scrollTop = viewer.scrollHeight;
+}
+
+// ── Add task ──────────────────────────────────────────────
+function openAddModal(preRepoId) {
+  const sel = document.getElementById('add-repo-sel');
+  sel.innerHTML = state.repos.map(r=>`<option value="${r.id}"${r.id===preRepoId?' selected':''}>${esc(r.name)}</option>`).join('');
   if (!state.repos.length) { alert('Add a repo first'); return; }
-  document.getElementById('add-title').value = '';
-  document.getElementById('add-desc').value = '';
-  document.getElementById('add-ac').value = '';
+  ['add-title','add-desc','add-ac'].forEach(id => document.getElementById(id).value='');
   document.getElementById('add-modal').classList.add('open');
 }
 
 async function submitAdd() {
-  const repoId = document.getElementById('add-repo-select').value;
-  const title = document.getElementById('add-title').value.trim();
+  const repoId = document.getElementById('add-repo-sel').value;
+  const title  = document.getElementById('add-title').value.trim();
   if (!title) { document.getElementById('add-title').focus(); return; }
-  const description = document.getElementById('add-desc').value.trim();
-  const acceptanceCriteria = document.getElementById('add-ac').value.trim();
-  const { error } = await api('POST', `/api/repos/${repoId}/tasks`, { title, description, acceptanceCriteria });
+  const { error } = await api('POST', `/api/repos/${repoId}/tasks`, {
+    title,
+    description: document.getElementById('add-desc').value.trim(),
+    acceptanceCriteria: document.getElementById('add-ac').value.trim(),
+  });
   if (error) { alert(error); return; }
   closeModal('add-modal');
   await refresh();
 }
 
-// ── Edit task modal ────────────────────────────────────────
+// ── Import .md ────────────────────────────────────────────
+function importMdFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async e => {
+    await doImport(e.target.result, file.name);
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+async function doImport(content, filename) {
+  if (!state.repos.length) { alert('Add a repo first'); return; }
+  // If only one repo, use it directly; otherwise prompt
+  let repoId = state.repos.length === 1 ? state.repos[0].id : null;
+  if (!repoId) {
+    const name = prompt('Import to which repo?\n' + state.repos.map((r,i)=>`${i+1}. ${r.name}`).join('\n') + '\n\nEnter number:');
+    const idx = parseInt(name||'') - 1;
+    if (isNaN(idx) || !state.repos[idx]) { alert('Invalid selection'); return; }
+    repoId = state.repos[idx].id;
+  }
+  const { error } = await api('POST', `/api/repos/${repoId}/tasks/import`, { content, filename });
+  if (error) { alert(error); return; }
+  await refresh();
+}
+
+// Drag-and-drop .md onto task area
+function onScrollDragOver(e) {
+  if ([...e.dataTransfer.items].some(i => i.kind==='file')) {
+    e.preventDefault();
+    document.getElementById('drop-hint').classList.add('show');
+  }
+}
+function onScrollDragLeave(e) {
+  if (!e.currentTarget.contains(e.relatedTarget)) {
+    document.getElementById('drop-hint').classList.remove('show');
+  }
+}
+function onScrollDrop(e) {
+  document.getElementById('drop-hint').classList.remove('show');
+  const file = [...e.dataTransfer.files].find(f => f.name.endsWith('.md'));
+  if (!file) return;
+  e.preventDefault();
+  const reader = new FileReader();
+  reader.onload = ev => doImport(ev.target.result, file.name);
+  reader.readAsText(file);
+}
+
+// ── Edit task ─────────────────────────────────────────────
 function openEdit(repoId, taskId) {
-  const task = state.tasks.find(t => t.repoId === repoId && t.id === taskId);
+  const task = state.tasks.find(t => t.repoId===repoId && t.id===taskId);
   if (!task) return;
   state.editing = { repoId, taskId };
-  document.getElementById('edit-title').value = task.title;
-  document.getElementById('edit-desc').value = task.description || '';
-  document.getElementById('edit-ac').value = task.acceptanceCriteria || '';
+  document.getElementById('edit-title').value  = task.title;
+  document.getElementById('edit-desc').value   = task.description || '';
+  document.getElementById('edit-ac').value     = task.acceptanceCriteria || '';
   document.getElementById('edit-status').value = task.status;
   document.getElementById('edit-modal').classList.add('open');
 }
 
 async function submitEdit() {
   const { repoId, taskId } = state.editing;
-  const title = document.getElementById('edit-title').value.trim();
-  const description = document.getElementById('edit-desc').value.trim();
-  const acceptanceCriteria = document.getElementById('edit-ac').value.trim();
-  const status = document.getElementById('edit-status').value;
-  const { error } = await api('PATCH', `/api/repos/${repoId}/tasks/${taskId}`, { title, description, acceptanceCriteria, status });
+  const { error } = await api('PATCH', `/api/repos/${repoId}/tasks/${taskId}`, {
+    title:  document.getElementById('edit-title').value.trim(),
+    description: document.getElementById('edit-desc').value.trim(),
+    acceptanceCriteria: document.getElementById('edit-ac').value.trim(),
+    status: document.getElementById('edit-status').value,
+  });
   if (error) { alert(error); return; }
   closeModal('edit-modal');
   await refresh();
 }
 
-async function deleteTask(e, repoId, taskId) {
+async function delTask(e, repoId, taskId) {
   e.stopPropagation();
   if (!confirm('Delete this task?')) return;
   await api('DELETE', `/api/repos/${repoId}/tasks/${taskId}`);
@@ -523,36 +710,24 @@ async function deleteTask(e, repoId, taskId) {
 
 function closeModal(id) {
   document.getElementById(id).classList.remove('open');
+  if (id==='log-modal') state.viewingLog = null;
 }
 
-// ── Drag to reorder (within same repo) ────────────────────
+// ── Drag to reorder ───────────────────────────────────────
 let dragSrc = null;
 function setupDrag(el, repoId) {
-  el.addEventListener('dragstart', e => {
-    dragSrc = el;
-    el.classList.add('dragging');
-    e.dataTransfer.effectAllowed = 'move';
-  });
-  el.addEventListener('dragend', () => {
-    el.classList.remove('dragging');
-    document.querySelectorAll('.task-item').forEach(i => i.classList.remove('drag-over'));
-  });
-  el.addEventListener('dragover', e => {
-    if (dragSrc?.dataset.repoId !== repoId) return;
-    e.preventDefault();
-    el.classList.add('drag-over');
-  });
+  el.addEventListener('dragstart', e => { dragSrc=el; el.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; });
+  el.addEventListener('dragend',   () => { el.classList.remove('dragging'); document.querySelectorAll('.task-item').forEach(i=>i.classList.remove('drag-over')); });
+  el.addEventListener('dragover',  e => { if (dragSrc?.dataset.repoId!==repoId) return; e.preventDefault(); el.classList.add('drag-over'); });
   el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
   el.addEventListener('drop', async e => {
     e.stopPropagation();
-    if (!dragSrc || dragSrc === el || dragSrc.dataset.repoId !== repoId) return;
-    const list = el.closest('.task-list-inner');
+    if (!dragSrc||dragSrc===el||dragSrc.dataset.repoId!==repoId) return;
+    const list  = el.closest('.task-list-inner');
     const items = [...list.querySelectorAll('.task-item')];
-    const srcIdx = items.indexOf(dragSrc);
-    const dstIdx = items.indexOf(el);
-    const order = items.map(i => i.dataset.taskId);
-    order.splice(srcIdx, 1);
-    order.splice(dstIdx, 0, dragSrc.dataset.taskId);
+    const order = items.map(i=>i.dataset.taskId);
+    const si = items.indexOf(dragSrc), di = items.indexOf(el);
+    order.splice(si,1); order.splice(di,0,dragSrc.dataset.taskId);
     await api('PATCH', `/api/repos/${repoId}/tasks/reorder`, { order });
     await refresh();
   });
@@ -560,46 +735,114 @@ function setupDrag(el, repoId) {
 
 // ── Scheduler ─────────────────────────────────────────────
 async function startScheduler() {
-  const { error } = await api('POST', '/api/scheduler/start', {});
+  const { error } = await api('POST','/api/scheduler/start',{});
   if (error) { alert(error); return; }
-  setRunning(true);
-  setStatus('Running...');
+  setRunning(true); setStatus('Running...');
+  hideRateLimit();
 }
-
 async function stopScheduler() {
-  await api('POST', '/api/scheduler/stop');
-  setRunning(false);
-  setStatus('Stopped');
+  await api('POST','/api/scheduler/stop');
+  setRunning(false); setStatus('Stopped');
 }
-
 function setRunning(r) {
-  document.getElementById('start-btn').style.display = r ? 'none' : '';
-  document.getElementById('stop-btn').style.display = r ? '' : 'none';
+  document.getElementById('start-btn').style.display = r?'none':'';
+  document.getElementById('stop-btn').style.display  = r?'':'none';
 }
-
 function setStatus(t) { document.getElementById('status-text').textContent = t; }
 
-// ── Log ────────────────────────────────────────────────────
+// ── Log ───────────────────────────────────────────────────
 const logBody = document.getElementById('log-body');
 function log(text, cls) {
-  const ts = new Date().toTimeString().substring(0, 8);
+  const ts  = new Date().toTimeString().substring(0,8);
   const div = document.createElement('div');
-  div.className = 'l' + (cls ? ' '+cls : '');
+  div.className = 'l'+(cls?' '+cls:'');
   div.textContent = `${ts}  ${text}`;
   logBody.appendChild(div);
   logBody.scrollTop = logBody.scrollHeight;
   while (logBody.children.length > 2000) logBody.removeChild(logBody.firstChild);
 }
 
-// ── Helpers ────────────────────────────────────────────────
-function esc(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) { const id=o.id; closeModal(id); } }));
+document.getElementById('repo-input').addEventListener('keydown', e => { if(e.key==='Enter') addRepo(); });
+document.getElementById('add-title').addEventListener('keydown',  e => { if(e.key==='Enter') submitAdd(); });
+
+// ── Tabs ──────────────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'usage') loadUsage();
 }
 
-// Close modals on overlay click
-document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', e => { if (e.target===o) o.classList.remove('open'); }));
-document.getElementById('repo-input').addEventListener('keydown', e => { if (e.key==='Enter') addRepo(); });
-document.getElementById('add-title').addEventListener('keydown', e => { if (e.key==='Enter') submitAdd(); });
+// ── Usage charts ──────────────────────────────────────────
+async function loadUsage() {
+  const { hourly, daily, windowTokens, windowPct, windowLimit } = await api('GET', '/api/usage');
+
+  // Ring
+  const pct = windowPct ?? 0;
+  const circumference = 264;
+  const offset = circumference - (pct / 100) * circumference;
+  const ring = document.getElementById('ring-fg');
+  ring.style.strokeDashoffset = offset;
+  ring.style.stroke = pct >= 80 ? 'var(--red)' : pct >= 50 ? 'var(--yellow)' : 'var(--green)';
+  document.getElementById('ring-pct').textContent = pct + '%';
+  document.getElementById('ring-pct').style.color = pct >= 80 ? 'var(--red)' : pct >= 50 ? 'var(--yellow)' : 'var(--green)';
+
+  const used = fmtTokens(windowTokens);
+  const limit = fmtTokens(windowLimit);
+  const remaining = fmtTokens(Math.max(0, windowLimit - windowTokens));
+  document.getElementById('window-detail').innerHTML =
+    `<strong>${used}</strong> tokens used in last 5 hours<br>` +
+    `<strong>${remaining}</strong> remaining of ${limit} limit`;
+  document.getElementById('limit-note').textContent =
+    '* Limit is an estimate (~1M tokens). Actual limit may vary by plan.';
+
+  renderChart('chart-hourly', hourly, 'var(--accent)');
+  renderChart('chart-daily',  daily,  '#bc8cff');
+  renderStats('stats-hourly', hourly, windowLimit);
+  renderStats('stats-daily',  daily,  null);
+}
+
+function fmtTokens(n) {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + 'M';
+  if (n >= 1_000)     return (n / 1_000).toFixed(1) + 'K';
+  return String(n);
+}
+
+function renderChart(id, data, color) {
+  const el = document.getElementById(id);
+  if (!data.length) { el.innerHTML = '<span style="color:var(--text2);font-size:12px">No data</span>'; return; }
+  const max = Math.max(...data.map(d => d.tokens), 1);
+  el.innerHTML = data.map(d => {
+    const h = Math.max(2, Math.round((d.tokens / max) * 110));
+    return `
+      <div class="bar-wrap">
+        <div class="bar" style="height:${h}px;background:${color}">
+          <div class="bar-tip">${fmtTokens(d.tokens)} tokens · ${d.messages} msg</div>
+        </div>
+        <div class="bar-label" title="${d.label}">${d.label}</div>
+      </div>`;
+  }).join('');
+}
+
+function renderStats(id, data, windowLimit) {
+  const el = document.getElementById(id);
+  const totalTokens = data.reduce((s, d) => s + d.tokens, 0);
+  const totalMsgs   = data.reduce((s, d) => s + d.messages, 0);
+  const peak = data.reduce((a, d) => d.tokens > a.tokens ? d : a, { tokens: 0, label: '-' });
+  let html = `
+    <div class="stat-box"><div class="stat-val">${fmtTokens(totalTokens)}</div><div class="stat-lbl">Total tokens</div></div>
+    <div class="stat-box"><div class="stat-val">${totalMsgs}</div><div class="stat-lbl">Messages</div></div>
+    <div class="stat-box"><div class="stat-val">${fmtTokens(peak.tokens)}</div><div class="stat-lbl">Peak — ${esc(peak.label)}</div></div>`;
+  if (windowLimit) {
+    const pct = Math.min(100, Math.round((totalTokens / windowLimit) * 100));
+    html += `<div class="stat-box"><div class="stat-val" style="color:${pct>=80?'var(--red)':pct>=50?'var(--yellow)':'var(--green)'}">${pct}%</div><div class="stat-lbl">of 5h limit</div></div>`;
+  }
+  el.innerHTML = html;
+}
 
 init();
 </script>

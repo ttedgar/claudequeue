@@ -4,7 +4,7 @@ import path from "path";
 import { getConfig, type RepoConfig } from "./config.js";
 import { parseTasks, getNextPending, updateTaskStatus } from "./queue.js";
 import { spawnRunner, type RunnerHandle } from "./runner.js";
-import { detectRateLimit, waitForReset } from "./ratelimit.js";
+import { detectRateLimit, parseResetTime, waitForReset } from "./ratelimit.js";
 
 interface SessionSummary {
   startedAt: string;
@@ -101,6 +101,8 @@ export class Scheduler extends EventEmitter {
       updateTaskStatus(repo.path, task.id, "ACTIVE");
 
       let rateLimitDetected = false;
+      let rateLimitResetTime: Date | undefined;
+      const outputBuffer: string[] = [];
 
       this.currentHandle = spawnRunner({
         repoId: repo.id,
@@ -111,23 +113,29 @@ export class Scheduler extends EventEmitter {
         taskDescription: task.description,
         acceptanceCriteria: task.acceptanceCriteria,
         onOutput: (data) => {
-          this.emit("output", data);
-          if (detectRateLimit(data)) rateLimitDetected = true;
+          this.emit("output", { text: data, repoId: repo.id, taskId: task.id });
+          outputBuffer.push(data);
+          if (!rateLimitDetected && detectRateLimit(data)) {
+            rateLimitDetected = true;
+            // Try to extract exact reset time from the message
+            const fullOutput = outputBuffer.join("");
+            rateLimitResetTime = parseResetTime(fullOutput) ?? parseResetTime(data) ?? undefined;
+          }
         },
       });
 
       const result = await this.currentHandle.result;
       this.currentHandle = undefined;
 
-      if (rateLimitDetected || result.outcome === "ratelimited") {
+      if (rateLimitDetected) {
         this.session.rateLimitHits++;
-        this.emit("ratelimit-detected");
         updateTaskStatus(repo.path, task.id, "PENDING");
+        this.emit("ratelimit-detected", { resetTime: rateLimitResetTime?.toISOString() ?? null });
 
         await waitForReset({
-          pollIntervalMs: 10 * 60 * 1000,
-          onPollAttempt: (attempt, nextAttemptIn) => {
-            this.emit("ratelimit-polling", attempt, nextAttemptIn);
+          resetTime: rateLimitResetTime ?? null,
+          onTick: (msRemaining, nextTickIn) => {
+            this.emit("ratelimit-polling", { msRemaining, nextTickIn });
           },
         });
         continue;

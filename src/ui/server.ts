@@ -4,7 +4,8 @@ import http from "http";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { getConfig, addRepo, removeRepo, setActiveRepo } from "../config.js";
+import os from "os";
+import { getConfig, addRepo, removeRepo, setActiveRepo, getLogsDir } from "../config.js";
 import { parseTasks, updateTaskStatus, updateTask, writeQueueTemplate, type Task, type TaskStatus } from "../queue.js";
 import { scheduler } from "../scheduler.js";
 
@@ -170,6 +171,149 @@ export function startUIServer(port: number): http.Server {
     res.json({ tasks: parseTasks(repo.path) });
   });
 
+  // --- Usage stats from ~/.claude/projects/**/*.jsonl ---
+  app.get("/api/usage", (_req, res) => {
+    const projectsDir = path.join(os.homedir(), ".claude", "projects");
+    if (!fs.existsSync(projectsDir)) { res.json({ hourly: [], daily: [], windowTokens: 0, windowPct: 0 }); return; }
+
+    const now = Date.now();
+    const fiveHoursAgo = now - 5 * 60 * 60 * 1000;
+    const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
+
+    interface Bucket { tokens: number; messages: number; }
+    const hourlyMap = new Map<number, Bucket>();
+    const dailyMap  = new Map<string, Bucket>();
+
+    // Pre-fill buckets so empty hours/days still show
+    for (let i = 4; i >= 0; i--) {
+      const h = Math.floor((now - i * 3600000) / 3600000) * 3600000;
+      hourlyMap.set(h, { tokens: 0, messages: 0 });
+    }
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now - i * 86400000).toISOString().split("T")[0];
+      dailyMap.set(d, { tokens: 0, messages: 0 });
+    }
+
+    // Walk all project JSONL files modified in the last 7 days
+    const getAllJsonl = (dir: string): string[] => {
+      try {
+        return fs.readdirSync(dir).flatMap((entry) => {
+          const full = path.join(dir, entry);
+          try {
+            const stat = fs.statSync(full);
+            if (stat.isDirectory()) return getAllJsonl(full);
+            if (entry.endsWith(".jsonl") && stat.mtimeMs >= sevenDaysAgo) return [full];
+          } catch { /* skip */ }
+          return [];
+        });
+      } catch { return []; }
+    };
+
+    for (const file of getAllJsonl(projectsDir)) {
+      let content: string;
+      try { content = fs.readFileSync(file, "utf-8"); } catch { continue; }
+
+      for (const line of content.split("\n")) {
+        if (!line.trim()) continue;
+        try {
+          const entry = JSON.parse(line) as {
+            timestamp?: string;
+            message?: { usage?: { input_tokens?: number; output_tokens?: number; cache_creation_input_tokens?: number; cache_read_input_tokens?: number } };
+          };
+          if (!entry.timestamp || !entry.message?.usage) continue;
+
+          const ts = new Date(entry.timestamp).getTime();
+          if (isNaN(ts)) continue;
+
+          const u = entry.message.usage;
+          const tokens = (u.input_tokens ?? 0) + (u.output_tokens ?? 0) +
+                         (u.cache_creation_input_tokens ?? 0) + (u.cache_read_input_tokens ?? 0);
+
+          if (ts >= fiveHoursAgo) {
+            const hKey = Math.floor(ts / 3600000) * 3600000;
+            if (hourlyMap.has(hKey)) {
+              const b = hourlyMap.get(hKey)!;
+              b.tokens += tokens; b.messages++;
+            }
+          }
+          if (ts >= sevenDaysAgo) {
+            const dKey = new Date(ts).toISOString().split("T")[0];
+            if (dailyMap.has(dKey)) {
+              const b = dailyMap.get(dKey)!;
+              b.tokens += tokens; b.messages++;
+            }
+          }
+        } catch { /* skip */ }
+      }
+    }
+
+    const windowTokens = [...hourlyMap.values()].reduce((s, b) => s + b.tokens, 0);
+    // Claude Code 5-hour standard limit is ~1M tokens (estimate — adjust if needed)
+    const FIVE_HOUR_LIMIT = 1_000_000;
+    const windowPct = Math.min(100, Math.round((windowTokens / FIVE_HOUR_LIMIT) * 100));
+
+    const fmt = (ts: number) => new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const fmtDay = (d: string) => new Date(d + "T12:00:00").toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+
+    const hourly = [...hourlyMap.entries()].sort((a, b) => a[0] - b[0])
+      .map(([ts, b]) => ({ label: fmt(ts), tokens: b.tokens, messages: b.messages }));
+
+    const daily = [...dailyMap.entries()].sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([d, b]) => ({ label: fmtDay(d), date: d, tokens: b.tokens, messages: b.messages }));
+
+    res.json({ hourly, daily, windowTokens, windowPct, windowLimit: FIVE_HOUR_LIMIT });
+  });
+
+  // --- Task log ---
+  app.get("/api/repos/:id/tasks/:taskId/log", (req, res) => {
+    const config = getConfig();
+    const repo = config.repos.find((r) => r.id === req.params.id);
+    if (!repo) { res.status(404).json({ error: "Repo not found" }); return; }
+
+    const logsDir = getLogsDir(repo.id);
+    const taskId = req.params.taskId;
+    // Find the log file for this task (matches taskId slug in filename)
+    let logContent = "";
+    if (fs.existsSync(logsDir)) {
+      const files = fs.readdirSync(logsDir).filter(f => f.includes(taskId) && f.endsWith(".log"));
+      if (files.length > 0) {
+        logContent = fs.readFileSync(path.join(logsDir, files[0]), "utf-8");
+      }
+    }
+    res.json({ log: logContent });
+  });
+
+  // --- Import task from .md content ---
+  app.post("/api/repos/:id/tasks/import", (req, res) => {
+    const config = getConfig();
+    const repo = config.repos.find((r) => r.id === req.params.id);
+    if (!repo) { res.status(404).json({ error: "Repo not found" }); return; }
+
+    const { content, filename } = req.body as { content: string; filename?: string };
+    if (!content) { res.status(400).json({ error: "content is required" }); return; }
+
+    // Extract title from first # heading, or use filename, or use first line
+    let title = "";
+    let body = content;
+    const headingMatch = /^#\s+(.+)$/m.exec(content);
+    if (headingMatch) {
+      title = headingMatch[1].trim();
+      body = content.slice(content.indexOf("\n") + 1).trim();
+    } else if (filename) {
+      title = filename.replace(/\.md$/i, "").replace(/[-_]/g, " ");
+    } else {
+      title = content.split("\n")[0].trim().substring(0, 80);
+      body = content.split("\n").slice(1).join("\n").trim();
+    }
+
+    const queuePath = path.join(repo.path, "queue.md");
+    if (!fs.existsSync(queuePath)) writeQueueTemplate(repo.path);
+
+    const entry = `\n## [PENDING] ${title}\n${body}\n`;
+    fs.appendFileSync(queuePath, entry);
+    res.json({ tasks: parseTasks(repo.path) });
+  });
+
   // --- Scheduler ---
   app.post("/api/scheduler/start", async (_req, res) => {
     if (scheduler.isRunning()) { res.status(409).json({ error: "Scheduler already running" }); return; }
@@ -199,9 +343,9 @@ export function startUIServer(port: number): http.Server {
   scheduler.on("task-started", (task) => broadcast("task-started", task));
   scheduler.on("task-done", (task) => broadcast("task-done", task));
   scheduler.on("task-blocked", (task) => broadcast("task-blocked", task));
-  scheduler.on("output", (data) => broadcast("output", { text: data }));
-  scheduler.on("ratelimit-detected", () => broadcast("ratelimit-detected", {}));
-  scheduler.on("ratelimit-polling", (attempt, nextAttemptIn) => broadcast("ratelimit-polling", { attempt, nextAttemptIn }));
+  scheduler.on("output", (data) => broadcast("output", data));
+  scheduler.on("ratelimit-detected", (data) => broadcast("ratelimit-detected", data));
+  scheduler.on("ratelimit-polling", (data) => broadcast("ratelimit-polling", data));
   scheduler.on("queue-empty", (summary) => broadcast("queue-empty", summary));
   scheduler.on("error", (err) => broadcast("error", { message: err.message }));
 
