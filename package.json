@@ -1,0 +1,57 @@
+{
+  "name": "claudequeue",
+  "version": "1.0.0",
+  "description": "Schedule and queue autonomous Claude Code tasks with a browser dashboard",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "claudequeue": "dist/index.js",
+    "claudequeue-mcp": "dist/mcp-entry.js"
+  },
+  "scripts": {
+    "build": "tsc && cp src/ui/index.html dist/ui/index.html",
+    "dev": "node --loader ts-node/esm src/index.ts",
+    "start": "node dist/index.js start",
+    "prepublishOnly": "npm run build"
+  },
+  "files": [
+    "dist",
+    "src/ui/index.html"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "ai",
+    "task-queue",
+    "automation",
+    "mcp"
+  ],
+  "author": "ttedgar",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ttedgar/claudequeue.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ttedgar/claudequeue/issues"
+  },
+  "homepage": "https://github.com/ttedgar/claudequeue#readme",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "commander": "^14.0.3",
+    "express": "^5.2.1",
+    "node-pty": "^1.1.0",
+    "ws": "^8.20.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.5.2",
+    "@types/ws": "^8.18.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.2"
+  }
+}
